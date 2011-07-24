@@ -92,11 +92,13 @@ class RPCEventListener(object):
 
     def run(self):
         try:
-            while True:
+            finished = False
+            while not finished:
                 try:
                     for data in jsonstreamparser.read_from_socket(self.socket,
                             timeout=self._secs_to_next_event()):
                         self._handle_call(data)
+                    finished = True
                 except jsonstreamparser.Timeout, e:
                     self._handle_scheduled_events()
         except self.Quit, e:
