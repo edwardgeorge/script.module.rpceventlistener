@@ -52,14 +52,16 @@ class RPCEventListener(object):
     def _handle_call(self, data):
         method = data['method']
         method_name = 'handle_%s' % (method.replace('.', '_'), )
+        m = None
         try:
             m = getattr(self.delegate, method_name)
         except AttributeError, e:
-            return
-        try:
-            m(**data['params'])
-        except Exception, e:
             pass
+        if m is not None and callable(m):
+            try:
+                m(**data['params'])
+            except Exception, e:
+                pass
         if method == 'System.OnQuit':
             raise self.Quit()
 
