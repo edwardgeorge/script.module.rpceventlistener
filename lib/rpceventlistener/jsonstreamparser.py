@@ -3,7 +3,7 @@
 import simplejson
 from simplejson.decoder import scanstring
 
-closemap = {']': '[', '}': '{'}
+_closemap = {']': '[', '}': '{'}
 
 
 def read_from_socket(s, bufsize=4096):
@@ -50,10 +50,10 @@ class FeedParser(object):
             i, s = s[0], s[1:]
             if i == '"':
                 self._string_state = stringparser(i)
-            elif i in closemap.values():
+            elif i in _closemap.values():
                 self._stack.append([i])
-            elif i in closemap.keys():
-                if self._stack and self._stack[-1][0] == closemap[i]:
+            elif i in _closemap.keys():
+                if self._stack and self._stack[-1][0] == _closemap[i]:
                     k = self._stack.pop()
                 else:
                     raise ValueError()
