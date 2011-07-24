@@ -61,17 +61,17 @@ class RPCEventListener(object):
         if method == 'System.OnQuit':
             raise self.Quit()
 
-    def schedule_event(self, event, time):
-        heapq.heappush(self.schedule, (time, event))
+    def schedule_event(self, event, time, *args, **kwargs):
+        heapq.heappush(self.schedule, (time, event, args, kwargs))
 
-    def schedule_event_in_secs(self, event, secs):
-        self.schedule_event_in_secs(event, time.time() + secs)
+    def schedule_event_in_secs(self, event, secs *args, **kwargs):
+        self.schedule_event_in_secs(event, time.time() + secs, *args, **kwargs)
 
     def _handle_scheduled_events(self):
         while self.schedule[0] < time.time():
-            _, event = heapq.heappop(self.schedule)
+            _, event, args, kw = heapq.heappop(self.schedule)
             try:
-                event()
+                event(*args, **kw)
             except Exception, e:
                 pass  # TODO: log
 
