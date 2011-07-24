@@ -68,7 +68,7 @@ class RPCEventListener(object):
         self.schedule_event(event, time.time() + secs, *args, **kwargs)
 
     def _handle_scheduled_events(self):
-        while self.schedule[0] < time.time():
+        while self.schedule and self.schedule[0][0] < time.time():
             _, event, args, kw = heapq.heappop(self.schedule)
             try:
                 event(*args, **kw)
