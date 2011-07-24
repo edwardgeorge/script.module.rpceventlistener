@@ -1,9 +1,19 @@
 import errno
+import heapq
 import socket
+import time
 
-import xbmc
+try:
+    import xbmc
+except ImportError, e:
+    # fake xbmc object for testing outside xbmc environment
+    xbmc = type('xbmc', (object, ), {
+        'abortRequested': False,
+        'sleep': lambda self, s: time.sleep(s), })()
 
 from rpceventlistener import jsonstreamparser
+
+_TICK_PREFIX = 'tick_'
 
 
 def _get_errno(e):
@@ -22,6 +32,9 @@ class RPCEventListener(object):
             self.delegate = self
         else:
             self.delegate = delegate
+
+        self.schedule = []
+
         self.socket = None
         while not self.socket and not xbmc.abortRequested:
             try:
@@ -50,9 +63,41 @@ class RPCEventListener(object):
         if method == 'System.OnQuit':
             raise self.Quit()
 
+    def schedule_event(self, event, time):
+        heapq.heappush(self.schedule, (time, event))
+
+    def schedule_event_in_secs(self, event, secs):
+        self.schedule_event_in_secs(event, time.time() + secs)
+
+    def _handle_scheduled_events(self):
+        while self.schedule[0] < time.time():
+            _, event = heapq.heappop(self.schedule)
+            try:
+                event()
+            except Exception, e:
+                pass  # TODO: log
+
+    def _next_event_time(self):
+        if self.schedule:
+            return self.schedule[0]
+
+    def _secs_to_next_event(self, cast_to_int=False):
+        next_event = self._next_event_time()
+        it not next_event:
+            return
+        secs = next_event - time.time()
+        if cast_to_int:
+            secs = int(secs)
+        return max(0, secs)
+
     def run(self):
         try:
-            for data in jsonstreamparser.read_from_socket(self.socket):
-                self._handle_call(data)
+            while True:
+                try:
+                    for data in jsonstreamparser.read_from_socket(self.socket
+                            timeout=self._secs_to_next_event()):
+                        self._handle_call(data)
+                except jsonstreamparser.Timeout, e:
+                    self._handle_scheduled_events()
         except self.Quit, e:
             return
