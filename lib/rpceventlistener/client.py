@@ -83,7 +83,7 @@ class RPCEventListener(object):
 
     def _secs_to_next_event(self, cast_to_int=False):
         next_event = self._next_event_time()
-        it not next_event:
+        if not next_event:
             return
         secs = next_event - time.time()
         if cast_to_int:
@@ -94,7 +94,7 @@ class RPCEventListener(object):
         try:
             while True:
                 try:
-                    for data in jsonstreamparser.read_from_socket(self.socket
+                    for data in jsonstreamparser.read_from_socket(self.socket,
                             timeout=self._secs_to_next_event()):
                         self._handle_call(data)
                 except jsonstreamparser.Timeout, e:
