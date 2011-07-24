@@ -64,8 +64,8 @@ class RPCEventListener(object):
     def schedule_event(self, event, time, *args, **kwargs):
         heapq.heappush(self.schedule, (time, event, args, kwargs))
 
-    def schedule_event_in_secs(self, event, secs *args, **kwargs):
-        self.schedule_event_in_secs(event, time.time() + secs, *args, **kwargs)
+    def schedule_event_in_secs(self, event, secs, *args, **kwargs):
+        self.schedule_event(event, time.time() + secs, *args, **kwargs)
 
     def _handle_scheduled_events(self):
         while self.schedule[0] < time.time():
@@ -83,12 +83,31 @@ class RPCEventListener(object):
         next_event = self._next_event_time()
         if not next_event:
             return
-        secs = next_event - time.time()
+        secs = next_event[0] - time.time()
         if cast_to_int:
             secs = int(secs)
         return max(0, secs)
 
+    def _get_tick_callbacks(self):
+        ret = []
+        for i in dir(self.delegate):
+            if i.startswith(_TICK_PREFIX):
+                secs = i[len(_TICK_PREFIX):]
+                attr = getattr(self.delegate, i)
+                if callable(attr) and secs.isdigit():
+                    ret.append((int(secs), attr))
+        return ret
+
+    def _process_tick(self, secs, callback):
+        try:
+            callback()
+        except Exception, e:
+            pass
+        self.schedule_event_in_secs(self._process_tick, secs, secs, callback)
+
     def run(self):
+        for secs, cb in self._get_tick_callbacks():
+            self.schedule_event_in_secs(self._process_tick, secs, secs, cb)
         try:
             finished = False
             while not finished:

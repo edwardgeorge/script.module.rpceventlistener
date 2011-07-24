@@ -22,7 +22,7 @@ def read_from_socket(s, timeout=None, bufsize=4096):
             if _timeout < 0:
                 raise Timeout()
             r, w, e = select.select([s], [], [], timeout)
-            if d not in r:
+            if s not in r:
                 raise Timeout()
         d = s.recv(bufsize)
         if not d:
