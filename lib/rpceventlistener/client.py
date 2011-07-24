@@ -12,7 +12,7 @@ def _get_errno(e):
         return e.args[0]
 
 
-class RPCClient(object):
+class RPCEventListener(object):
     class Quit(Exception):
         pass
 

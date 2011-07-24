@@ -1,1 +1,1 @@
-from rpceventlistener.client import RPCClient
+from rpceventlistener.client import RPCEventListener
