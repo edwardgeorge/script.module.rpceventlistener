@@ -1,3 +1,4 @@
+import errno
 import socket
 
 import xbmc
@@ -23,6 +24,7 @@ class RPCEventListener(object):
             self.delegate = delegate
         self.socket = None
         while not self.socket and not xbmc.abortRequested:
+            if xbmc.abortRequest:
             try:
                 s = socket.socket()
                 s.connect(addr)
@@ -32,6 +34,8 @@ class RPCEventListener(object):
                     xbmc.sleep(1)
                 else:
                     raise
+        if not self.socket:
+            raise Exception()
 
     def _handle_call(self, data):
         method = data['method']
