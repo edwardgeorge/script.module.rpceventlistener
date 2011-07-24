@@ -14,7 +14,8 @@ class Timeout(Exception):
 
 def read_from_socket(s, timeout=None, bufsize=4096):
     p = FeedParser()
-    timeout_time = time.time() + timeout
+    if timeout is not None:
+        timeout_time = time.time() + timeout
     while True:
         if timeout is not None:
             _timeout = timeout_time = time.time()
