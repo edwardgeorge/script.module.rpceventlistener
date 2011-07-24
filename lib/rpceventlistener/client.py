@@ -25,7 +25,7 @@ class RPCEventListener(object):
         self.socket = None
         while not self.socket and not xbmc.abortRequested:
             try:
-                s = socket.socket()
+                s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
                 s.connect(addr)
                 self.socket = s
             except socket.error, e:
