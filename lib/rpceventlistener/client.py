@@ -24,7 +24,6 @@ class RPCEventListener(object):
             self.delegate = delegate
         self.socket = None
         while not self.socket and not xbmc.abortRequested:
-            if xbmc.abortRequest:
             try:
                 s = socket.socket()
                 s.connect(addr)
