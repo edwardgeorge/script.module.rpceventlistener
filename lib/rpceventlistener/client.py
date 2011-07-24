@@ -52,11 +52,7 @@ class RPCEventListener(object):
     def _handle_call(self, data):
         method = data['method']
         method_name = 'handle_%s' % (method.replace('.', '_'), )
-        m = None
-        try:
-            m = getattr(self.delegate, method_name)
-        except AttributeError, e:
-            pass
+        m = getattr(self.delegate, method_name, None)
         if m is not None and callable(m):
             try:
                 m(**data['params'])
