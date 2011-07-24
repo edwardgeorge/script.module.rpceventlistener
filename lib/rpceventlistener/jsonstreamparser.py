@@ -8,6 +8,10 @@ from simplejson.decoder import scanstring
 _closemap = {']': '[', '}': '{'}
 
 
+class Timeout(Exception):
+    pass
+
+
 def read_from_socket(s, timeout=None, bufsize=4096):
     p = FeedParser()
     timeout_time = time.time() + timeout
@@ -15,10 +19,10 @@ def read_from_socket(s, timeout=None, bufsize=4096):
         if timeout is not None:
             _timeout = timeout_time = time.time()
             if _timeout < 0:
-                yield None
+                raise Timeout()
             r, w, e = select.select([s], [], [], timeout)
             if d not r:
-                yield None
+                raise Timeout()
         d = s.recv(bufsize)
         if not d:
             return
