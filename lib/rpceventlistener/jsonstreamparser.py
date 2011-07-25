@@ -12,13 +12,51 @@ class Timeout(Exception):
     pass
 
 
+class ConnectionClosed(StopIteration):
+    pass
+
+
+class StreamParser(object):
+    def __init__(self, socket, bufsize=4096):
+        self.socket = socket
+        self.bufsize = bufsize
+        self.parser = FeedParser()
+        self.data = None
+
+    def _timer(self, timeout_at):
+        timeout = timeout_at - time.time()
+        if timeout < 0:
+            raise Timeout()
+        r, w, e = select.select([self.socket], [], [])
+        if self.socket not in r:
+            raise Timeout()
+
+    def __iter__(self):
+        return self
+
+    def next(self, timeout=None):
+        if timeout is not None:
+            timeout_time = time.time() + timeout
+        while True:
+            if timeout is not None:
+                self._timer(timeout_time)
+            if not self.data:
+                self.data = d = self.socket.recv(self.bufsize)
+                if not d:
+                    raise ConnectionClosed()
+            while self.data:
+                obj, self.data = self.parser.feed(self.data) or (None, None)
+                if obj:
+                    return simplejson.loads(obj)
+
+
 def read_from_socket(s, timeout=None, bufsize=4096):
     p = FeedParser()
     if timeout is not None:
         timeout_time = time.time() + timeout
     while True:
         if timeout is not None:
-            _timeout = timeout_time = time.time()
+            _timeout = timeout_time - time.time()
             if _timeout < 0:
                 raise Timeout()
             r, w, e = select.select([s], [], [], timeout)
