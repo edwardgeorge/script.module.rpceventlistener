@@ -3,13 +3,7 @@ import heapq
 import socket
 import time
 
-try:
-    import xbmc
-except ImportError, e:
-    # fake xbmc object for testing outside xbmc environment
-    xbmc = type('xbmc', (object, ), {
-        'abortRequested': False,
-        'sleep': lambda self, s: time.sleep(s), })()
+import xbmc
 
 from rpceventlistener import jsonstreamparser
 
@@ -43,7 +37,7 @@ class RPCEventListener(object):
                 self.socket = s
             except socket.error, e:
                 if _get_errno(e) == errno.ECONNREFUSED:
-                    xbmc.sleep(1)
+                    xbmc.sleep(250)
                 else:
                     raise
         if not self.socket:
