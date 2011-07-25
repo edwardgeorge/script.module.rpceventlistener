@@ -50,27 +50,6 @@ class StreamParser(object):
                     return simplejson.loads(obj)
 
 
-def read_from_socket(s, timeout=None, bufsize=4096):
-    p = FeedParser()
-    if timeout is not None:
-        timeout_time = time.time() + timeout
-    while True:
-        if timeout is not None:
-            _timeout = timeout_time - time.time()
-            if _timeout < 0:
-                raise Timeout()
-            r, w, e = select.select([s], [], [], timeout)
-            if s not in r:
-                raise Timeout()
-        d = s.recv(bufsize)
-        if not d:
-            return
-        while d:
-            obj, d = p.feed(d) or ('', '')
-            if obj:
-                yield simplejson.loads(obj)
-
-
 def stringparser(char):
     data = [char]
     def feed(s):
