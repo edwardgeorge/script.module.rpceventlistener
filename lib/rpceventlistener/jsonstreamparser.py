@@ -27,7 +27,7 @@ class StreamParser(object):
         timeout = timeout_at - time.time()
         if timeout < 0:
             raise Timeout()
-        r, w, e = select.select([self.socket], [], [])
+        r, w, e = select.select([self.socket], [], [], timeout)
         if self.socket not in r:
             raise Timeout()
 
